@@ -426,6 +426,7 @@ function handleSecretTap() {
       document.body.appendChild(newCat);
 
       const newAudio = secretAudio.cloneNode();
+      newAudio.load();
       newAudio.play();
 
       setTimeout(() => {
