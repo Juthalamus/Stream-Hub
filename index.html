@@ -1,44 +1,515 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Streaming Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="preload" href="beluga-4.png" as="image" />
   <style>
-    body {
-      background-color: #121212;
-      color: #fff;
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 50px;
+    /* Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      font-family: 'Outfit', sans-serif;
+      background: #0a0a0a;
+      overflow-x: hidden;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 60px 20px 40px;
+      position: relative;
+    }
+
+    /* Blade Runner style animated scanlines background */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.03),
+        rgba(255, 255, 255, 0.03) 1px,
+        transparent 1px,
+        transparent 4px
+      );
+      animation: scanlines 12s linear infinite;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    @keyframes scanlines {
+      0% { background-position-y: 0; }
+      100% { background-position-y: 1000px; }
+    }
+
     h1 {
-      font-size: 36px;
-      margin-bottom: 40px;
+      font-size: 3em;
+      text-align: center;
+      margin-bottom: 50px;
+      background: linear-gradient(to right, #00e0ff, #ff66c4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 8px rgba(0, 255, 255, 0.3);
+      user-select: none;
+      font-weight: 600;
     }
-    .button {
-      display: inline-block;
-      background-color: #1f1f1f;
-      padding: 15px 30px;
-      margin: 12px;
-      border-radius: 12px;
-      color: #00bfff;
+
+    h1 span {
+      background: inherit;
+      -webkit-background-clip: inherit;
+      -webkit-text-fill-color: inherit;
+      text-shadow: inherit;
+      user-select: none;
+      cursor: default;
+      display: inline;
+      margin: 0;
+      padding: 0;
+      line-height: 1;
+      font-size: inherit;
+      font-weight: inherit;
+    }
+
+    #secret-button {
+      cursor: pointer;
+    }
+    #secret-button:hover {
+      transform: none !important;
+      cursor: pointer;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-template-rows: repeat(2, auto);
+      gap: 60px 0;
+      max-width: 1100px;
+      width: 100%;
+      justify-items: center;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Grid placement */
+    .hulu        { grid-column: 1; grid-row: 1; }
+    .disneyplus  { grid-column: 3; grid-row: 1; }
+    .paramount   { grid-column: 5; grid-row: 1; }
+    .max         { grid-column: 2; grid-row: 2; }
+    .netflix     { grid-column: 4; grid-row: 2; }
+
+    .service-link {
+      cursor: pointer;
+      animation: fadeInUp 1s ease forwards;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: filter 0.4s ease;
       text-decoration: none;
-      font-size: 20px;
-      transition: background 0.3s ease;
+      color: #00eaff;
+      user-select: none;
+      width: 140px;
+      display: flex;
+      justify-content: center;
+      position: relative;
+      z-index: 2;
     }
-    .button:hover {
-      background-color: #2c2c2c;
+
+    /* stagger fade-in */
+    .hulu       { animation-delay: 0.15s; }
+    .disneyplus { animation-delay: 0.3s; }
+    .paramount  { animation-delay: 0.45s; }
+    .max        { animation-delay: 0.6s; }
+    .netflix    { animation-delay: 0.75s; }
+
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .content-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.4s ease, filter 0.4s ease;
+      filter: drop-shadow(0 0 15px rgba(0, 255, 255, 0.8));
+      border-radius: 12px;
+      user-select: none;
+      max-width: 140px;
+      width: 100%;
+    }
+
+    .service-link:hover .content-wrapper {
+      transform: scale(1.4) rotate(1deg);
+      filter: drop-shadow(0 0 30px #00e0ff);
+      z-index: 10;
+      position: relative;
+    }
+
+    .content-wrapper img {
+      max-width: 130px;
+      max-height: 90px;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      object-position: center;
+      border-radius: 12px;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .service-name {
+      margin-top: 14px;
+      font-weight: 600;
+      font-size: 20px;
+      letter-spacing: 0.05em;
+      color: #00eaff;
+      text-shadow: 0 0 8px rgba(0, 255, 255, 0.8);
+      user-select: none;
+      pointer-events: none;
+      text-align: center;
+      width: 100%;
+    }
+
+    /* Joke image styling and animation */
+    #joke-image {
+      position: fixed;
+      left: 50%;
+      bottom: -300px;
+      transform: translateX(-50%);
+      max-width: 150px;
+      width: 15vw;
+      user-select: none;
+      pointer-events: none;
+      opacity: 0;
+      transition: bottom 3s ease, opacity 1s ease;
+      z-index: 1000;
+    }
+
+    #secret-cat {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      max-width: 90vw;
+      max-height: 90vh;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 2000;
+      transition: opacity 0.5s ease;
+    }
+
+    #secret-cat.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #secret-button {
+      display: inline-block;
+      cursor: pointer;
+      color: inherit;
+      transition: transform 0.2s ease;
+    }
+
+    #secret-button:hover {
+      transform: scale(1.4);
+    }
+
+    #joke-image.visible {
+      opacity: 1;
+    }
+
+    #big-cat {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 90vw;
+      height: auto;
+      max-height: 90vh;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 3000;
+      transition: opacity 3s ease;
+    }
+
+    #big-cat.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Responsive */
+    @media (max-width: 700px) {
+      .container {
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(3, auto);
+        gap: 40px 0;
+      }
+      .hulu       { grid-column: 1; grid-row: 1; }
+      .disneyplus { grid-column: 2; grid-row: 1; }
+      .paramount  { grid-column: 3; grid-row: 1; }
+      .max        { grid-column: 1; grid-row: 2; }
+      .netflix    { grid-column: 2; grid-row: 2; }
+
+      .service-link {
+        width: 110px;
+      }
+      .content-wrapper img {
+        max-width: 100px;
+        max-height: 70px;
+      }
+      .service-name {
+        font-size: 16px;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .container {
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(3, auto);
+      }
+      .hulu       { grid-column: 1; grid-row: 1; }
+      .disneyplus { grid-column: 2; grid-row: 1; }
+      .paramount  { grid-column: 1; grid-row: 2; }
+      .max        { grid-column: 2; grid-row: 2; }
+      .netflix    { grid-column: 1; grid-row: 3; }
+
+      .service-link {
+        width: 90px;
+      }
+      .content-wrapper img {
+        max-width: 80px;
+        max-height: 55px;
+      }
+      .service-name {
+        font-size: 14px;
+      }
     }
   </style>
 </head>
-<body>
-  <h1>🎬 My Streaming Hub</h1>
 
-  <a class="button" href="https://www.hulu.com" target="_blank">Hulu</a>
-  <a class="button" href="https://www.disneyplus.com" target="_blank">Disney+</a>
-  <a class="button" href="https://www.paramountplus.com" target="_blank">Paramount+</a>
-  <a class="button" href="https://www.max.com" target="_blank">Max</a>
-  <a class="button" href="https://www.netflix.com" target="_blank">Netflix</a>
+<body>
+
+<h1>
+  🎬 Streaming Hub<span>!</span><span>!</span><span id="secret-button">!</span><span>!</span>
+</h1>
+
+<div class="container">
+
+  <a class="service-link hulu" href="https://www.hulu.com" target="_self" title="Hulu">
+    <div class="content-wrapper">
+      <img src="https://logo.clearbit.com/hulu.com" alt="Hulu Logo" draggable="false" />
+      <div class="service-name">Hulu</div>
+    </div>
+  </a>
+
+  <a class="service-link disneyplus" href="https://www.disneyplus.com" target="_self" title="Disney+">
+    <div class="content-wrapper">
+      <img src="https://logo.clearbit.com/disneyplus.com" alt="Disney+ Logo" draggable="false" />
+      <div class="service-name">Disney+</div>
+    </div>
+  </a>
+
+  <a class="service-link paramount" href="https://www.paramountplus.com" target="_self" title="Paramount+">
+    <div class="content-wrapper">
+      <img src="https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/118979e4-f04a-4bd0-ae31-29ba54cb377b/dhdwlgp-4b654cbf-5737-46ad-ac33-679bac66a239.png?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7InBhdGgiOiJcL2ZcLzExODk3OWU0LWYwNGEtNGJkMC1hZTMxLTI5YmE1NGNiMzc3YlwvZGhkd2xncC00YjY1NGNiZi01NzM3LTQ2YWQtYWMzMy02NzliYWM2NmEyMzkucG5nIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmZpbGUuZG93bmxvYWQiXX0.bE6_fAKu8ZIOVeovkjTUmnn9BwEDDIgjCRY7gkT_41U" alt="Paramount Mountain Logo" draggable="false" />
+      <div class="service-name">Paramount+</div>
+    </div>
+  </a>
+
+  <a class="service-link max" href="https://www.max.com" target="_self" title="Max">
+    <div class="content-wrapper">
+      <img src="https://pyxis.nymag.com/v1/imgs/445/615/ff34bec646b77434336575aa2aa07c15c0-max--.1x.rsquare.w1400.jpg" alt="Max Logo" draggable="false" />
+      <div class="service-name" style="color:#a0b0c8; text-shadow: 0 0 6px rgba(100,130,180,0.8);">Max</div>
+    </div>
+  </a>
+
+  <a class="service-link netflix" href="https://www.netflix.com" target="_self" title="Netflix">
+    <div class="content-wrapper">
+      <img src="https://logo.clearbit.com/netflix.com" alt="Netflix Logo" draggable="false" />
+      <div class="service-name">Netflix</div>
+    </div>
+  </a>
+
+</div>
+
+<!-- Joke Image -->
+<img
+  id="joke-image"
+  src="beluga-4.png"
+  alt="Funny Beluga Meme Cat"
+  draggable="false"
+/>
+
+<img id="secret-cat" src="meme-cat-1.png" alt="Full screen cat" />
+<audio id="secret-audio" src="boom-sound-effect-1.mp3" preload="auto"></audio>
+
+<img id="big-cat" src="meme-cat-2.png" alt="Big Cat" />
+<audio id="big-cat-audio" src="dramatic-horns-2.mp3" preload="auto"></audio>
+
+
+ <script>
+const secretButton = document.getElementById("secret-button");
+const bigCat = document.getElementById("big-cat");
+const bigCatAudio = document.getElementById("big-cat-audio");
+const secretAudio = document.getElementById("secret-audio");
+
+let clickCount = 0;
+let locked = false;
+let bigCatTriggers = 0;
+let blackoutActive = false;
+
+secretButton.addEventListener("click", () => {
+  if (locked || blackoutActive) return;
+
+  clickCount++;
+
+  if (bigCatTriggers < 2) {
+    if (clickCount === 30) {
+      bigCatTriggers++;
+
+      bigCatAudio.volume = bigCatTriggers >= 2 ? 1.0 : 0.5;
+
+      bigCat.classList.add("show");
+      bigCatAudio.currentTime = 0;
+      bigCatAudio.play();
+
+      locked = true;
+      secretButton.style.pointerEvents = "none";
+
+      setTimeout(() => {
+        bigCat.classList.remove("show");
+      }, 3000);
+
+      setTimeout(() => {
+        locked = false;
+        secretButton.style.pointerEvents = "auto";
+        clickCount = 0;
+      }, 5000);
+
+    } else {
+      // smaller cat & sound on other clicks before 30
+      const newCat = document.createElement("img");
+      newCat.src = "meme-cat-1.png";
+      newCat.alt = "Secret Cat";
+      newCat.className = "secret-cat";
+
+      const randomTop = Math.floor(Math.random() * 70) + 10;
+      const randomLeft = Math.floor(Math.random() * 70) + 10;
+      const randomSize = Math.floor(Math.random() * 40) + 20;
+
+      Object.assign(newCat.style, {
+        position: "fixed",
+        top: `${randomTop}%`,
+        left: `${randomLeft}%`,
+        width: `${randomSize}vw`,
+        transform: "translate(-50%, -50%) scale(1)",
+        opacity: "1",
+        transition: "opacity 0.6s ease",
+        pointerEvents: "none",
+        zIndex: "2000",
+      });
+
+      document.body.appendChild(newCat);
+
+      const newAudio = secretAudio.cloneNode();
+      newAudio.play();
+
+      setTimeout(() => {
+        newCat.style.opacity = "0";
+        setTimeout(() => {
+          newCat.remove();
+        }, 600);
+      }, 1200);
+    }
+  } else {
+    if (clickCount === 30) {
+      blackoutActive = true;
+      locked = true;
+      secretButton.style.pointerEvents = "none";
+
+      let blackOverlay = document.getElementById("black-overlay");
+      if (!blackOverlay) {
+        blackOverlay = document.createElement("div");
+        blackOverlay.id = "black-overlay";
+        Object.assign(blackOverlay.style, {
+          position: "fixed",
+          top: "0",
+          left: "0",
+          width: "100vw",
+          height: "100vh",
+          backgroundColor: "black",
+          opacity: "1",
+          zIndex: "4000",
+          pointerEvents: "auto",
+        });
+        document.body.appendChild(blackOverlay);
+      } else {
+        blackOverlay.style.display = "block";
+      }
+
+      setTimeout(() => {
+        let memeCat3 = document.getElementById("meme-cat-3");
+        if (!memeCat3) {
+          memeCat3 = document.createElement("img");
+          memeCat3.id = "meme-cat-3";
+          memeCat3.src = "meme-cat-3.png";
+          memeCat3.alt = "Meme Cat 3";
+          Object.assign(memeCat3.style, {
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            width: "0vw",
+            height: "auto",
+            maxHeight: "90vh",
+            transform: "translate(-50%, -50%)",
+            opacity: "1",
+            zIndex: "4100",
+            pointerEvents: "none",
+            transition: "width 5s ease",
+            userSelect: "none",
+          });
+          document.body.appendChild(memeCat3);
+        } else {
+          memeCat3.style.display = "block";
+          memeCat3.style.width = "0vw";
+          memeCat3.style.opacity = "1";
+        }
+
+        const cymbalAudio = new Audio("bowed-cymbal-3.mp3");
+        cymbalAudio.volume = 1.0;
+        cymbalAudio.play();
+
+        requestAnimationFrame(() => {
+          memeCat3.style.width = "90vw";
+        });
+
+        setTimeout(() => {
+          blackOverlay.style.display = "none";
+          memeCat3.style.opacity = "0";
+
+          setTimeout(() => {
+            memeCat3.style.display = "none";
+          }, 1000);
+
+          clickCount = 0;
+          locked = false;
+          blackoutActive = false;
+          bigCatTriggers = 0;
+          secretButton.style.pointerEvents = "auto";
+        }, 5000);
+      }, 5000);
+    }
+  }
+});
+</script>
 
 </body>
 </html>
