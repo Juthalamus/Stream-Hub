@@ -240,7 +240,7 @@ touch-action: manipulation;
       opacity: 0;
       pointer-events: none;
       z-index: 3000;
-      transition: opacity 3s ease;
+      transition: opacity 1.2s ease;
     }
 
     #big-cat.show {
@@ -408,7 +408,7 @@ function handleSecretTap() {
 
       const randomTop = Math.floor(Math.random() * 70) + 10;
       const randomLeft = Math.floor(Math.random() * 70) + 10;
-      const randomSize = Math.floor(Math.random() * 40) + 20;
+      const randomSize = Math.floor(Math.random() * 20) + 10;
 
       Object.assign(newCat.style, {
         position: "fixed",
