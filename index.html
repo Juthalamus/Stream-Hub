@@ -369,8 +369,7 @@ let locked = false;
 let bigCatTriggers = 0;
 let blackoutActive = false;
 
-secretButton.addEventListener("touchstart", handleSecretTap);
-secretButton.addEventListener("click", handleSecretTap);
+secretButton.addEventListener("pointerdown", handleSecretTap);
 
 function handleSecretTap() {
   if (locked || blackoutActive) return;
@@ -433,8 +432,8 @@ function handleSecretTap() {
         newCat.style.opacity = "0";
         setTimeout(() => {
           newCat.remove();
-        }, 600);
-      }, 1200);
+        }, 300);
+      }, 400);
     }
   } else {
     if (clickCount === 30) {
